@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://energy-platform/schemas/mqtt-message",
+  "title": "MQTT Sensor Message",
+  "description": "Standard message format published by data collectors to MQTT",
+  "type": "object",
+  "required": ["factory_id", "machine_id", "timestamp", "metrics"],
+  "properties": {
+    "factory_id": {
+      "type": "string",
+      "description": "Unique factory identifier",
+      "examples": ["factory_01"]
+    },
+    "machine_id": {
+      "type": "string",
+      "description": "Unique machine identifier within the factory",
+      "examples": ["CNC_01", "COMP_01"]
+    },
+    "machine_type": {
+      "type": "string",
+      "enum": ["cnc", "compressor", "hvac", "pump", "conveyor", "lighting", "other"],
+      "description": "Type classification of the machine"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of the reading"
+    },
+    "metrics": {
+      "type": "object",
+      "properties": {
+        "power_kw": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Active power in kilowatts"
+        },
+        "voltage": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Voltage in volts"
+        },
+        "current": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Current in amps"
+        },
+        "power_factor": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Power factor (0-1)"
+        },
+        "temperature": {
+          "type": "number",
+          "description": "Temperature in Celsius"
+        },
+        "pressure": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Pressure in bar (compressors/pneumatics)"
+        },
+        "flow_rate": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Flow rate in L/min (pumps/compressors)"
+        }
+      },
+      "required": ["power_kw"]
+    },
+    "status": {
+      "type": "string",
+      "enum": ["running", "idle", "off", "fault", "maintenance"],
+      "description": "Current machine operational state"
+    }
+  }
+}

@@ -8,3 +8,6 @@
 | [api-reference.md](./api-reference.md) | Complete REST API endpoint reference (all routes, params, response shapes) |
 | [data-model.md](./data-model.md) | MQTT message schema, InfluxDB measurements, Flux query examples, API envelope |
 | [configuration.md](./configuration.md) | All environment variables per service with defaults and descriptions |
+| [roadmap.md](./roadmap.md) | Post-MVP priorities, ML v2 plans, future vision, known gaps |
+| [schemas/mqtt-message.schema.json](./schemas/mqtt-message.schema.json) | Formal JSON Schema (Draft 2020-12) for MQTT sensor messages |
+| [schemas/api-response.schema.json](./schemas/api-response.schema.json) | Formal JSON Schema for the API response envelope |
