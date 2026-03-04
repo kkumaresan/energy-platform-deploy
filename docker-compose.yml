@@ -115,6 +115,41 @@ services:
       - influxdb
     restart: unless-stopped
 
+  optimization:
+    build:
+      context: ../energy-optimization-service
+      dockerfile: Dockerfile
+    container_name: energy-optimization
+    ports:
+      - "8083:8083"
+    environment:
+      OPTIMIZATION_INFLUXDB_URL: http://influxdb:8086
+      OPTIMIZATION_INFLUXDB_TOKEN: energy-dev-token-2026
+      OPTIMIZATION_INFLUXDB_ORG: energy-platform
+      OPTIMIZATION_INFLUXDB_BUCKET: energy_data
+      OPTIMIZATION_API_PORT: "8083"
+    depends_on:
+      - influxdb
+    restart: unless-stopped
+
+  alert-service:
+    build:
+      context: ../energy-alert-service
+      dockerfile: Dockerfile
+    container_name: energy-alert-service
+    ports:
+      - "8084:8084"
+    environment:
+      ALERT_INFLUXDB_URL: http://influxdb:8086
+      ALERT_INFLUXDB_TOKEN: energy-dev-token-2026
+      ALERT_INFLUXDB_ORG: energy-platform
+      ALERT_INFLUXDB_BUCKET: energy_data
+      ALERT_API_PORT: "8084"
+      ALERT_CHECK_INTERVAL_SECONDS: "30"
+    depends_on:
+      - influxdb
+    restart: unless-stopped
+
   api-gateway:
     build:
       context: ../energy-api-gateway
@@ -130,10 +165,14 @@ services:
       INFLUXDB_BUCKET: energy_data
       ANALYTICS_SERVICE_URL: http://analytics:8081
       ML_SERVICE_URL: http://ml-service:8082
+      OPTIMIZATION_SERVICE_URL: http://optimization:8083
+      ALERT_SERVICE_URL: http://alert-service:8084
     depends_on:
       - influxdb
       - analytics
       - ml-service
+      - optimization
+      - alert-service
     restart: unless-stopped
 
 volumes:

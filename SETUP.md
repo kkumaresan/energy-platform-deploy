@@ -21,6 +21,8 @@ git clone git@github.com:kkumaresan/energy-ingestion-service.git
 git clone git@github.com:kkumaresan/energy-analytics-service.git
 git clone git@github.com:kkumaresan/energy-ml-service.git
 git clone git@github.com:kkumaresan/energy-api-gateway.git
+git clone git@github.com:kkumaresan/energy-optimization-service.git
+git clone git@github.com:kkumaresan/energy-alert-service.git
 git clone git@github.com:kkumaresan/energy-prototype.git
 ```
 
@@ -34,6 +36,8 @@ iot-exploration/
 ├── energy-analytics-service/     ← Energy analytics API (Python/FastAPI)
 ├── energy-ml-service/            ← ML models — anomaly, forecast, efficiency (Python/FastAPI)
 ├── energy-api-gateway/           ← Public API gateway (TypeScript/Fastify)
+├── energy-optimization-service/  ← Optimization engine (Python/FastAPI)
+├── energy-alert-service/         ← Alert rules and notifications (Python/FastAPI)
 └── energy-prototype/             ← Architecture docs and schemas
 ```
 
@@ -52,7 +56,7 @@ First run will take a few minutes to build all service images.
 docker compose ps
 ```
 
-All 8 containers should show `running`:
+All 10 containers should show `running`:
 
 | Container              | Service            | Port  | Description                          |
 |------------------------|--------------------|-------|--------------------------------------|
@@ -63,6 +67,8 @@ All 8 containers should show `running`:
 | energy-ingestion       | Ingestion Service  | —     | Writes MQTT messages to InfluxDB     |
 | energy-analytics       | Analytics Service  | 8081  | Energy aggregation, idle detection   |
 | energy-ml-service      | ML Service         | 8082  | Anomaly, forecast, efficiency models |
+| energy-optimization    | Optimization       | 8083  | Compressor, schedule, peak reduction |
+| energy-alert-service   | Alert Service      | 8084  | Alert rules, notifications           |
 | energy-api-gateway     | API Gateway        | 8080  | Public REST API                      |
 
 ## 4. Access the UIs
@@ -116,6 +122,36 @@ curl "http://localhost:8080/api/v1/ml/forecast/CNC_01?horizon=24"
 curl http://localhost:8080/api/v1/ml/efficiency
 ```
 
+### Optimization — all suggestions
+```bash
+curl "http://localhost:8080/api/v1/optimization/suggestions?range=-1h"
+```
+
+### Optimization — compressor analysis
+```bash
+curl "http://localhost:8080/api/v1/optimization/compressor?range=-1h"
+```
+
+### Optimization — schedule suggestions
+```bash
+curl "http://localhost:8080/api/v1/optimization/schedule?range=-1h"
+```
+
+### Alerts — active alerts
+```bash
+curl http://localhost:8080/api/v1/alerts
+```
+
+### Alerts — alert history
+```bash
+curl "http://localhost:8080/api/v1/alerts/history?limit=20"
+```
+
+### Alerts — configured rules
+```bash
+curl http://localhost:8080/api/v1/alerts/rules
+```
+
 ## 6. Common Commands
 
 ```bash
@@ -154,7 +190,7 @@ The ingestion and analytics services retry connections on startup. If InfluxDB i
 The simulator needs time to generate enough data points. Wait at least 2 minutes after starting the platform before training models.
 
 ### Port conflicts
-If ports 1883, 3000, 8080–8082, or 8086 are in use, stop the conflicting process or edit `docker-compose.yml` to remap ports.
+If ports 1883, 3000, 8080–8084, or 8086 are in use, stop the conflicting process or edit `docker-compose.yml` to remap ports.
 
 ## Repository Overview
 
@@ -166,4 +202,6 @@ If ports 1883, 3000, 8080–8082, or 8086 are in use, stop the conflicting proce
 | energy-analytics-service    | Python     | Energy aggregation, idle detection, peak demand, cost |
 | energy-ml-service           | Python     | Anomaly detection, forecasting, efficiency scoring    |
 | energy-api-gateway          | TypeScript | Public REST API (proxies to internal services)        |
+| energy-optimization-service | Python     | Compressor, schedule, peak demand optimization        |
+| energy-alert-service        | Python     | Configurable alert rules, webhook notifications       |
 | energy-prototype            | Docs       | Architecture docs, schemas, project overview          |
