@@ -1,0 +1,145 @@
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2
+    container_name: energy-mosquitto
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - mosquitto-data:/mosquitto/data
+      - mosquitto-log:/mosquitto/log
+    restart: unless-stopped
+
+  influxdb:
+    image: influxdb:2
+    container_name: energy-influxdb
+    ports:
+      - "8086:8086"
+    volumes:
+      - influxdb-data:/var/lib/influxdb2
+      - influxdb-config:/etc/influxdb2
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: admin
+      DOCKER_INFLUXDB_INIT_PASSWORD: energy-admin-2026
+      DOCKER_INFLUXDB_INIT_ORG: energy-platform
+      DOCKER_INFLUXDB_INIT_BUCKET: energy_data
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: energy-dev-token-2026
+      DOCKER_INFLUXDB_INIT_RETENTION: 30d
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:11.5.2
+    container_name: energy-grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: energy-admin
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/machine-energy.json
+    depends_on:
+      - influxdb
+    restart: unless-stopped
+
+  data-collector:
+    build:
+      context: ../energy-data-collector
+      dockerfile: Dockerfile
+    container_name: energy-data-collector
+    environment:
+      COLLECTOR_MODE: simulator
+      COLLECTOR_MQTT_HOST: mosquitto
+      COLLECTOR_MQTT_PORT: "1883"
+      COLLECTOR_FACTORY_ID: factory_01
+      COLLECTOR_COLLECT_INTERVAL_SECONDS: "5"
+    depends_on:
+      - mosquitto
+    restart: unless-stopped
+
+  ingestion:
+    build:
+      context: ../energy-ingestion-service
+      dockerfile: Dockerfile
+    container_name: energy-ingestion
+    environment:
+      INGESTION_MQTT_HOST: mosquitto
+      INGESTION_MQTT_PORT: "1883"
+      INGESTION_INFLUXDB_URL: http://influxdb:8086
+      INGESTION_INFLUXDB_TOKEN: energy-dev-token-2026
+      INGESTION_INFLUXDB_ORG: energy-platform
+      INGESTION_INFLUXDB_BUCKET: energy_data
+    depends_on:
+      - mosquitto
+      - influxdb
+    restart: unless-stopped
+
+  analytics:
+    build:
+      context: ../energy-analytics-service
+      dockerfile: Dockerfile
+    container_name: energy-analytics
+    ports:
+      - "8081:8081"
+    environment:
+      ANALYTICS_INFLUXDB_URL: http://influxdb:8086
+      ANALYTICS_INFLUXDB_TOKEN: energy-dev-token-2026
+      ANALYTICS_INFLUXDB_ORG: energy-platform
+      ANALYTICS_INFLUXDB_BUCKET: energy_data
+      ANALYTICS_API_PORT: "8081"
+    depends_on:
+      - influxdb
+    restart: unless-stopped
+
+  ml-service:
+    build:
+      context: ../energy-ml-service
+      dockerfile: Dockerfile
+    container_name: energy-ml-service
+    ports:
+      - "8082:8082"
+    volumes:
+      - ml-model-artifacts:/app/model_artifacts
+    environment:
+      ML_INFLUXDB_URL: http://influxdb:8086
+      ML_INFLUXDB_TOKEN: energy-dev-token-2026
+      ML_INFLUXDB_ORG: energy-platform
+      ML_INFLUXDB_BUCKET: energy_data
+      ML_API_PORT: "8082"
+      ML_MODEL_ARTIFACTS_DIR: /app/model_artifacts
+    depends_on:
+      - influxdb
+    restart: unless-stopped
+
+  api-gateway:
+    build:
+      context: ../energy-api-gateway
+      dockerfile: Dockerfile
+    container_name: energy-api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      API_PORT: "8080"
+      INFLUXDB_URL: http://influxdb:8086
+      INFLUXDB_TOKEN: energy-dev-token-2026
+      INFLUXDB_ORG: energy-platform
+      INFLUXDB_BUCKET: energy_data
+      ANALYTICS_SERVICE_URL: http://analytics:8081
+      ML_SERVICE_URL: http://ml-service:8082
+    depends_on:
+      - influxdb
+      - analytics
+      - ml-service
+    restart: unless-stopped
+
+volumes:
+  mosquitto-data:
+  mosquitto-log:
+  influxdb-data:
+  influxdb-config:
+  grafana-data:
+  ml-model-artifacts:
