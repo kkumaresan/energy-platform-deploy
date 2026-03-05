@@ -23,6 +23,7 @@ git clone git@github.com:kkumaresan/energy-ml-service.git
 git clone git@github.com:kkumaresan/energy-api-gateway.git
 git clone git@github.com:kkumaresan/energy-optimization-service.git
 git clone git@github.com:kkumaresan/energy-alert-service.git
+git clone git@github.com:kkumaresan/energy-frontend.git
 git clone git@github.com:kkumaresan/energy-prototype.git
 ```
 
@@ -38,6 +39,7 @@ iot-exploration/
 ├── energy-api-gateway/           ← Public API gateway (TypeScript/Fastify)
 ├── energy-optimization-service/  ← Optimization engine (Python/FastAPI)
 ├── energy-alert-service/         ← Alert rules and notifications (Python/FastAPI)
+├── energy-frontend/              ← Custom SPA dashboard (React/Vite/Tailwind)
 └── energy-prototype/             ← Architecture docs and schemas
 ```
 
@@ -56,7 +58,7 @@ First run will take a few minutes to build all service images.
 docker compose ps
 ```
 
-All 10 containers should show `running`:
+All 11 containers should show `running`:
 
 | Container              | Service            | Port  | Description                          |
 |------------------------|--------------------|-------|--------------------------------------|
@@ -69,14 +71,20 @@ All 10 containers should show `running`:
 | energy-ml-service      | ML Service         | 8082  | Anomaly, forecast, efficiency models |
 | energy-optimization    | Optimization       | 8083  | Compressor, schedule, peak reduction |
 | energy-alert-service   | Alert Service      | 8084  | Alert rules, notifications           |
-| energy-api-gateway     | API Gateway        | 8080  | Public REST API                      |
+| energy-api-gateway     | API Gateway        | 8080  | Public REST API + JWT auth           |
+| energy-frontend        | Custom Dashboard   | 3001  | React SPA (Nginx)                    |
 
 ## 4. Access the UIs
 
-| UI        | URL                      | Username | Password          |
-|-----------|--------------------------|----------|-------------------|
-| Grafana   | http://localhost:3000     | admin    | energy-admin      |
-| InfluxDB  | http://localhost:8086     | admin    | energy-admin-2026 |
+| UI               | URL                      | Username | Password          |
+|------------------|--------------------------|----------|-------------------|
+| Custom Dashboard | http://localhost:3001     | admin    | admin-change-me   |
+| Grafana          | http://localhost:3000     | admin    | energy-admin      |
+| InfluxDB         | http://localhost:8086     | admin    | energy-admin-2026 |
+
+The custom dashboard at `http://localhost:3001` is the primary UI. It provides JWT-authenticated access to all platform features: live machine status, energy analytics, ML insights, optimization suggestions, alert management, and embedded Grafana panels.
+
+Default admin credentials are set via the `ADMIN_INITIAL_PASSWORD` environment variable in `docker-compose.yml` (default: `admin-change-me`). Change this before exposing the platform externally.
 
 Three Grafana dashboards are auto-provisioned and should show live data within 10–30 seconds of startup:
 
@@ -223,18 +231,19 @@ The ingestion and analytics services retry connections on startup. If InfluxDB i
 The simulator needs time to generate enough data points. Wait at least 2 minutes after starting the platform before training models.
 
 ### Port conflicts
-If ports 1883, 3000, 8080–8084, or 8086 are in use, stop the conflicting process or edit `docker-compose.yml` to remap ports.
+If ports 1883, 3000, 3001, 8080–8084, or 8086 are in use, stop the conflicting process or edit `docker-compose.yml` to remap ports.
 
 ## Repository Overview
 
-| Repository                  | Language   | Purpose                                             |
-|-----------------------------|------------|-----------------------------------------------------|
-| energy-platform-deploy      | YAML       | Docker Compose, Mosquitto/Grafana config             |
-| energy-data-collector       | Python     | Sensor data simulator (8 machines, shift patterns)   |
-| energy-ingestion-service    | Python     | MQTT subscriber → InfluxDB writer                    |
-| energy-analytics-service    | Python     | Energy aggregation, idle detection, peak demand, cost |
-| energy-ml-service           | Python     | Anomaly detection, forecasting, efficiency scoring    |
-| energy-api-gateway          | TypeScript | Public REST API (proxies to internal services)        |
-| energy-optimization-service | Python     | Compressor, schedule, peak demand optimization        |
-| energy-alert-service        | Python     | Configurable alert rules, webhook notifications       |
-| energy-prototype            | Docs       | Architecture docs, schemas, project overview          |
+| Repository                  | Language         | Purpose                                             |
+|-----------------------------|------------------|-----------------------------------------------------|
+| energy-platform-deploy      | YAML             | Docker Compose, Mosquitto/Grafana config             |
+| energy-data-collector       | Python           | Sensor data simulator (8 machines, shift patterns)   |
+| energy-ingestion-service    | Python           | MQTT subscriber → InfluxDB writer                    |
+| energy-analytics-service    | Python           | Energy aggregation, idle detection, peak demand, cost |
+| energy-ml-service           | Python           | Anomaly detection, forecasting, efficiency scoring    |
+| energy-api-gateway          | TypeScript       | Public REST API + JWT auth (proxies to internal services) |
+| energy-optimization-service | Python           | Compressor, schedule, peak demand optimization        |
+| energy-alert-service        | Python           | Configurable alert rules, webhook notifications       |
+| energy-frontend             | TypeScript/React | Custom SPA dashboard with JWT auth and Grafana embeds |
+| energy-prototype            | Docs             | Architecture docs, schemas, project overview          |
