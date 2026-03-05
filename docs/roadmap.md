@@ -1,14 +1,22 @@
 # Roadmap & Future Considerations
 
+## Completed
+
+| Item | Description |
+|---|---|
+| JWT authentication | JWT auth + RBAC on the API gateway — access tokens (15 min) and refresh tokens (7 days) |
+| Device management | Register, configure, health-check, and set per-device alert thresholds via REST API |
+| Operations frontend | React SPA at port 3001 — login, dashboards, device management, energy analytics, alerts, admin |
+
 ## Post-MVP Priorities
 
 | Item | Description | Phase |
 |---|---|---|
-| Real sensor integration | Add Modbus TCP/RTU and OPC-UA clients to `energy-data-collector` for live factory hardware | Phase 5 |
-| k3s migration | Move from Docker Compose to lightweight Kubernetes (k3s) for multi-factory deployments | Phase 6 |
-| JWT authentication | Add JWT-based auth to the API gateway (middleware scaffold exists at `src/middleware/auth.ts`) | Phase 6 |
+| Real sensor integration | Add Modbus TCP/RTU and OPC-UA clients to `energy-data-collector` for live factory hardware | Phase 6 |
+| k3s migration | Move from Docker Compose to lightweight Kubernetes (k3s) for multi-factory deployments | Phase 7 |
 | Rate limiting | API gateway rate limiting per client | Phase 6 |
-| WebSocket alerts | Real-time alert stream via WebSocket (`/ws/alerts`) — gateway has `@fastify/websocket` installed | Phase 6 |
+| WebSocket alerts | Real-time alert stream via WebSocket (`/ws/alerts`) push to frontend | Phase 6 |
+| Persistent alert history | Store alert history in InfluxDB or SQLite instead of in-memory | Phase 6 |
 
 ## ML Model Improvements (v2)
 
@@ -38,8 +46,8 @@ The alert service currently supports `console` and `webhook`. Planned channels:
 
 ## Known Gaps (Current MVP)
 
-- No authentication on any endpoint — all APIs are open
 - Alert history is in-memory only — lost on container restart
 - ML models must be retrained manually via API call — no scheduled retraining
 - Single factory only — no tenant/site isolation
+- WebSocket `/ws/alerts` endpoint exists but push delivery to the frontend is not yet wired
 - `energy-prototype` repo (retired) contained original architecture planning docs — now consolidated into `energy-platform-deploy/docs/`

@@ -6,7 +6,171 @@ Base path: `/api/v1`
 
 ---
 
+## Authentication
+
+The platform uses JWT bearer tokens. Obtain a token via `POST /auth/login`, then pass it in every subsequent request header:
+
+```
+Authorization: Bearer <accessToken>
+```
+
+Access tokens expire in **15 minutes**. Use `POST /auth/refresh` to obtain a new one without re-entering credentials.
+
+### `POST /auth/login`
+Authenticate and receive tokens. **Public — no auth required.**
+
+**Request body**
+```json
+{ "username": "admin", "password": "admin-change-me" }
+```
+
+**Response**
+```json
+{
+  "status": "success",
+  "data": {
+    "accessToken": "<jwt>",
+    "refreshToken": "<jwt>",
+    "user": { "id": 1, "username": "admin", "email": null, "role": "admin" }
+  }
+}
+```
+
+### `POST /auth/refresh`
+Exchange a refresh token for a new access token. **Public — no auth required.**
+
+**Request body**
+```json
+{ "refreshToken": "<jwt>" }
+```
+
+**Response**
+```json
+{ "status": "success", "data": { "accessToken": "<new-jwt>" } }
+```
+
+### `POST /auth/logout`
+Client-side only in this MVP (tokens are stateless). Returns 200. **Requires auth.**
+
+### `GET /auth/me`
+Returns the currently authenticated user profile. **Requires auth.**
+
+**Response**
+```json
+{ "status": "success", "data": { "id": 1, "username": "admin", "role": "admin" } }
+```
+
+---
+
+## Admin — User Management
+
+> Requires role: **admin**
+
+### `GET /api/v1/admin/users`
+List all platform users.
+
+### `POST /api/v1/admin/users`
+Create a new user.
+
+**Request body**
+```json
+{ "username": "jane", "password": "secret", "email": "jane@example.com", "role": "operator" }
+```
+Roles: `admin`, `plant_manager`, `operator`, `viewer`
+
+### `PATCH /api/v1/admin/users/:id`
+Update a user's role or email.
+
+**Request body** — any subset of `{ "role", "email" }`
+
+### `DELETE /api/v1/admin/users/:id`
+Delete a user. Cannot delete the last admin.
+
+---
+
+## Devices
+
+> All device endpoints require auth. Minimum role noted per endpoint.
+
+### `GET /api/v1/devices`
+List all registered devices. **Role: viewer+**
+
+**Response**
+```json
+{
+  "status": "success",
+  "data": [
+    {
+      "machine_id": "CNC_01",
+      "factory_id": "factory_01",
+      "machine_type": "cnc",
+      "rated_power_kw": 15,
+      "collection_mode": "simulator",
+      "alert_overrides": null,
+      "created_at": "2026-03-01T08:00:00Z",
+      "updated_at": "2026-03-01T08:00:00Z"
+    }
+  ]
+}
+```
+
+### `POST /api/v1/devices`
+Register a new device. **Role: plant_manager+**
+
+**Request body**
+```json
+{
+  "machine_id": "CNC_03",
+  "factory_id": "factory_01",
+  "machine_type": "cnc",
+  "rated_power_kw": 18,
+  "collection_mode": "simulator"
+}
+```
+
+### `GET /api/v1/devices/:id`
+Single device details. **Role: viewer+**
+
+### `PATCH /api/v1/devices/:id`
+Update device configuration or collection mode. **Role: plant_manager+**
+
+**Request body** — any subset of `{ "machine_type", "rated_power_kw", "collection_mode" }`
+
+### `DELETE /api/v1/devices/:id`
+Deregister a device. **Role: admin**
+
+### `GET /api/v1/devices/:id/health`
+Returns live connectivity status based on last InfluxDB reading. **Role: viewer+**
+
+**Response**
+```json
+{
+  "status": "success",
+  "data": {
+    "machine_id": "CNC_01",
+    "lastSeen": "2026-03-04T10:29:55Z",
+    "isOnline": true,
+    "gapMinutes": 0.08
+  }
+}
+```
+`isOnline` is `true` if `gapMinutes` ≤ 2.
+
+### `PATCH /api/v1/devices/:id/thresholds`
+Override alert thresholds for a specific device. **Role: plant_manager+**
+
+**Request body** — key/value threshold overrides stored as JSON:
+```json
+{ "power_spike_ratio": 1.8, "idle_power_pct": 0.25 }
+```
+
+---
+
 ## Health
+
+> All `/api/v1/*` endpoints require `Authorization: Bearer <token>` unless stated otherwise.
+
+
 
 ### `GET /api/v1/health`
 Gateway health check.
@@ -320,8 +484,10 @@ Aggregated alert statistics.
 
 | HTTP Status | When |
 |---|---|
-| 400 | Invalid query parameters |
-| 404 | Machine ID not found |
+| 400 | Invalid query parameters or request body |
+| 401 | Missing or invalid JWT token |
+| 403 | Authenticated but insufficient role |
+| 404 | Machine ID or device not found |
 | 503 | Upstream service unavailable |
 | 500 | Internal server error |
 

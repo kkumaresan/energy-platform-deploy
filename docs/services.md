@@ -216,25 +216,50 @@ Trained model artifacts are persisted to `/app/model_artifacts/` (Docker volume:
 
 **Language**: TypeScript (Node.js 22)
 **Framework**: Fastify v5
-**Role**: Public REST API — the single entry point for all external clients
+**Role**: Public REST API — the single entry point for all external clients; hosts JWT auth, RBAC, and device management
 **Docker service name**: `api-gateway`
 **Exposed port**: 8080
 
 ### Key Dependencies
 - `fastify>=5.2` — HTTP server
+- `@fastify/jwt>=9.0` — JWT sign/verify plugin
 - `@fastify/cors>=11.0` — CORS support (default: `*`)
 - `@fastify/websocket>=11.0` — WebSocket support
+- `better-sqlite3>=9.0` — Embedded SQLite for users and devices
+- `bcryptjs>=2.4` — Password hashing (pure JS, no native deps beyond SQLite)
 - `@influxdata/influxdb-client>=1.35` — Direct InfluxDB queries
+
+### Authentication & RBAC
+
+All `/api/v1/*` routes require a valid JWT bearer token. The gateway enforces a four-tier role hierarchy:
+
+| Role | Rank | Capabilities |
+|---|---|---|
+| `viewer` | 0 | Read-only access to all data |
+| `operator` | 1 | Read all data, acknowledge alerts |
+| `plant_manager` | 2 | Configure devices, alert thresholds, trigger ML training |
+| `admin` | 3 | Full access, user management, device deletion |
+
+A default `admin` user is seeded from `ADMIN_INITIAL_PASSWORD` on first startup.
 
 ### Routing Behavior
 
-| Route prefix | Handled by |
-|---|---|
-| `/api/v1/machines*` | Direct InfluxDB queries (via `influxService.ts`) |
-| `/api/v1/energy*` | Proxy → `analytics:8081` (or direct InfluxDB for raw usage) |
-| `/api/v1/ml*` | Proxy → `ml-service:8082` |
-| `/api/v1/optimization*` | Proxy → `optimization:8083` |
-| `/api/v1/alerts*` | Proxy → `alert-service:8084` |
+| Route prefix | Handled by | Auth required |
+|---|---|---|
+| `/auth/*` | Built-in auth routes | Public (login/refresh) or JWT (me/logout) |
+| `/api/v1/admin/users*` | Built-in user CRUD | admin only |
+| `/api/v1/devices*` | Built-in device CRUD + health | role-dependent (see API reference) |
+| `/api/v1/machines*` | Direct InfluxDB queries | viewer+ |
+| `/api/v1/energy*` | Proxy → `analytics:8081` | viewer+ |
+| `/api/v1/ml*` | Proxy → `ml-service:8082` | viewer+ (train: plant_manager+) |
+| `/api/v1/optimization*` | Proxy → `optimization:8083` | viewer+ |
+| `/api/v1/alerts*` | Proxy → `alert-service:8084` | viewer+ |
+
+### Data Storage
+
+The gateway persists two SQLite tables in `data/platform.db` (mounted via `gateway-db` Docker volume):
+- `users` — platform accounts with hashed passwords and roles
+- `devices` — registered factory machines with configuration and per-device alert threshold overrides
 
 ### Response Envelope
 All responses follow a standard envelope:
@@ -257,7 +282,52 @@ Errors:
 
 ---
 
-## 8. Infrastructure Services
+## 8. energy-frontend
+
+**Language**: TypeScript
+**Framework**: React 18 + Vite 6
+**Role**: Operations dashboard SPA — authentication, device management, analytics views, embedded Grafana panels, admin
+**Docker service name**: `frontend`
+**Exposed port**: 3001 (nginx)
+
+### Key Dependencies
+- `react>=18`, `react-router-dom>=6` — SPA framework and routing
+- `@tanstack/react-query>=5` — Server state management with automatic polling
+- `zustand>=5` — Client auth state with localStorage persistence
+- `axios` — HTTP client with JWT attach + 401 refresh-and-retry interceptors
+- `tailwindcss>=4` — Utility-first styling (via `@tailwindcss/vite`)
+- `react-hook-form>=7`, `zod>=3` — Form validation
+- `recharts>=2` — Charts for non-Grafana visualizations
+
+### Pages
+
+| Route | Min Role | Description |
+|---|---|---|
+| `/login` | public | JWT login form |
+| `/` | viewer | Dashboard: Grafana overview panel + live status cards |
+| `/devices` | viewer | Device table with health badges |
+| `/devices/new` | plant_manager | Register a new device |
+| `/devices/:id` | viewer | Device detail + Grafana panel embed |
+| `/devices/:id/edit` | plant_manager | Edit device configuration |
+| `/energy` | viewer | Energy analytics + cost summary |
+| `/ml` | viewer | Anomaly timeline, forecast, efficiency table |
+| `/optimization` | viewer | Optimization recommendation cards |
+| `/alerts` | viewer | Active alerts + history (operator can acknowledge) |
+| `/alerts/rules` | plant_manager | Per-device alert threshold editor |
+| `/admin/users` | admin | User management table |
+| `/admin/settings` | admin | Factory name and tariff configuration |
+
+### nginx Proxy
+
+In production (Docker), nginx on port 3001 proxies `/api/`, `/auth/`, and `/ws/` to `api-gateway:8080`. All unmatched routes fall back to `index.html` for React Router.
+
+### Grafana Embedding
+
+Grafana panels are embedded as `<iframe>` elements using the `kiosk` query parameter. Requires `GF_AUTH_ANONYMOUS_ENABLED=true` and `GF_SECURITY_ALLOW_EMBEDDING=true` on the Grafana container (both set in `docker-compose.yml`).
+
+---
+
+## 9. Infrastructure Services
 
 ### Mosquitto (Eclipse Mosquitto 2)
 

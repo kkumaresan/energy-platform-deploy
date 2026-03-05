@@ -18,6 +18,10 @@ These variables are consumed by the Docker-managed InfluxDB and Grafana containe
 | `DOCKER_INFLUXDB_INIT_RETENTION` | `30d` | Data retention period |
 | `GF_SECURITY_ADMIN_USER` | `admin` | Grafana admin username |
 | `GF_SECURITY_ADMIN_PASSWORD` | `energy-admin` | Grafana admin password |
+| `GF_SECURITY_ALLOW_EMBEDDING` | `true` | Allows Grafana panels to be embedded via `<iframe>` in the frontend |
+| `GF_AUTH_ANONYMOUS_ENABLED` | `true` | Enables anonymous (unauthenticated) viewer access — required for iframe embedding |
+| `GF_AUTH_ANONYMOUS_ORG_NAME` | `Main Org.` | Grafana org for anonymous sessions |
+| `GF_AUTH_ANONYMOUS_ORG_ROLE` | `Viewer` | Role granted to anonymous sessions |
 
 ---
 
@@ -153,6 +157,21 @@ No prefix — variables are used directly.
 | `OPTIMIZATION_SERVICE_URL` | `http://optimization:8083` | Optimization service base URL |
 | `ALERT_SERVICE_URL` | `http://alert-service:8084` | Alert service base URL |
 | `CORS_ORIGIN` | `*` | Allowed CORS origin(s) |
+| `JWT_SECRET` | `dev-secret-change-in-prod` | Secret used to sign/verify JWTs. **Must be changed in production.** |
+| `ADMIN_INITIAL_PASSWORD` | `admin-change-me` | Password for the seeded `admin` account on first startup. Ignored on subsequent starts. |
+| `DB_PATH` | `./data/platform.db` | Path to the SQLite database file (users + devices). Mounted via `gateway-db` Docker volume. |
+
+---
+
+## energy-frontend
+
+Build-time arguments passed via `docker build --build-arg` (or `args:` in `docker-compose.yml`).
+
+| Variable | Default | Description |
+|---|---|---|
+| `VITE_API_URL` | `/` | Base URL for REST API calls. Empty string or `/` means same-origin (nginx proxies `/api` and `/auth` to the gateway). |
+| `VITE_GRAFANA_URL` | `http://localhost:3000` | Public URL of the Grafana instance used for iframe embedding. |
+| `VITE_WS_URL` | `ws://localhost:8080` | WebSocket base URL for the live alert stream. |
 
 ---
 
