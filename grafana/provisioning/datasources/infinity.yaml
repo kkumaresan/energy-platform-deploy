@@ -1,0 +1,14 @@
+apiVersion: 1
+
+datasources:
+  - name: Energy APIs
+    type: yesoreyeram-infinity-datasource
+    access: proxy
+    isDefault: false
+    editable: true
+    jsonData:
+      allowedHosts:
+        - http://analytics:8081
+        - http://ml-service:8082
+        - http://optimization:8083
+        - http://alert-service:8084

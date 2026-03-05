@@ -1,0 +1,337 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "title": "Row 1: Summary Stats (Last 24h)",
+      "type": "row",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "collapsed": false
+    },
+    {
+      "title": "Total Energy (24h)",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 1 },
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "${DS_ENERGY_APIS}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "steps": [{ "color": "blue", "value": null }] },
+          "unit": "kwatth",
+          "displayName": "Total Energy"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "url": "http://analytics:8081/analytics/cost?start=-24h",
+          "url_options": { "method": "GET" },
+          "root_selector": "$.total_kwh",
+          "columns": []
+        }
+      ]
+    },
+    {
+      "title": "Total Cost (24h)",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 1 },
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "${DS_ENERGY_APIS}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "steps": [{ "color": "green", "value": null }] },
+          "unit": "currencyUSD",
+          "displayName": "Total Cost"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "url": "http://analytics:8081/analytics/cost?start=-24h",
+          "url_options": { "method": "GET" },
+          "root_selector": "$.total_cost",
+          "columns": []
+        }
+      ]
+    },
+    {
+      "title": "Load Factor",
+      "type": "gauge",
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 1 },
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "${DS_ENERGY_APIS}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 0.5 },
+              { "color": "green", "value": 0.75 }
+            ]
+          },
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "displayName": "Load Factor"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "url": "http://analytics:8081/analytics/peak-demand?start=-24h",
+          "url_options": { "method": "GET" },
+          "root_selector": "$.load_factor",
+          "columns": []
+        }
+      ]
+    },
+    {
+      "title": "Peak Demand",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 1 },
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "${DS_ENERGY_APIS}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 60 },
+              { "color": "red", "value": 80 }
+            ]
+          },
+          "unit": "kwatt",
+          "displayName": "Peak Demand"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "url": "http://analytics:8081/analytics/peak-demand?start=-24h",
+          "url_options": { "method": "GET" },
+          "root_selector": "$.peak_kw",
+          "columns": []
+        }
+      ]
+    },
+    {
+      "title": "Row 2: Energy Trends",
+      "type": "row",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+      "collapsed": false
+    },
+    {
+      "title": "Daily Energy by Machine (1h windows)",
+      "type": "timeseries",
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 6 },
+      "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "unit": "kwatth",
+          "custom": { "lineWidth": 2, "fillOpacity": 10 }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "query": "from(bucket: \"energy_data\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"machine_power\" and r._field == \"power_kw\")\n  |> aggregateWindow(every: 1h, fn: mean, createEmpty: false)\n  |> map(fn: (r) => ({r with _value: r._value * 1.0}))"
+        }
+      ]
+    },
+    {
+      "title": "Row 3: Cost & Shift Analysis",
+      "type": "row",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 16 },
+      "collapsed": false
+    },
+    {
+      "title": "Cost Breakdown by Machine",
+      "type": "barchart",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 17 },
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "${DS_ENERGY_APIS}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "unit": "currencyUSD"
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "groupWidth": 0.7,
+        "barWidth": 0.8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "url": "http://analytics:8081/analytics/cost?start=-24h",
+          "url_options": { "method": "GET" },
+          "root_selector": "$.machines[*]",
+          "columns": [
+            { "selector": "machine_id", "text": "Machine", "type": "string" },
+            { "selector": "cost", "text": "Cost (USD)", "type": "number" }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Shift Energy Comparison",
+      "type": "barchart",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 17 },
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "${DS_ENERGY_APIS}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "unit": "kwatth"
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "vertical",
+        "groupWidth": 0.7,
+        "barWidth": 0.8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "url": "http://analytics:8081/analytics/energy/shift?start=-25h",
+          "url_options": { "method": "GET" },
+          "root_selector": "$[*]",
+          "columns": [
+            { "selector": "shift", "text": "Shift", "type": "string" },
+            { "selector": "total_kwh", "text": "Energy (kWh)", "type": "number" }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Row 4: Idle & Peak",
+      "type": "row",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 25 },
+      "collapsed": false
+    },
+    {
+      "title": "Idle Machines (Last 1h)",
+      "type": "table",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 26 },
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "${DS_ENERGY_APIS}" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "thresholds" } },
+        "overrides": []
+      },
+      "options": {
+        "sortBy": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "url": "http://analytics:8081/analytics/idle?start=-1h",
+          "url_options": { "method": "GET" },
+          "root_selector": "$[*]",
+          "columns": [
+            { "selector": "machine_id", "text": "Machine", "type": "string" },
+            { "selector": "idle_duration_minutes", "text": "Idle (min)", "type": "number" },
+            { "selector": "wasted_kwh", "text": "Wasted (kWh)", "type": "number" }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Peak Demand Windows",
+      "type": "table",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 26 },
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "${DS_ENERGY_APIS}" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "thresholds" } },
+        "overrides": []
+      },
+      "options": {
+        "sortBy": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "url": "http://analytics:8081/analytics/peak-demand?start=-24h",
+          "url_options": { "method": "GET" },
+          "root_selector": "$.top_windows[*]",
+          "columns": [
+            { "selector": "start", "text": "Start", "type": "string" },
+            { "selector": "end", "text": "End", "type": "string" },
+            { "selector": "peak_kw", "text": "Peak (kW)", "type": "number" }
+          ]
+        }
+      ]
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 39,
+  "tags": ["energy", "analytics", "cost"],
+  "templating": {
+    "list": [
+      {
+        "name": "DS_INFLUXDB",
+        "type": "datasource",
+        "query": "influxdb",
+        "current": { "text": "InfluxDB", "value": "InfluxDB" },
+        "hide": 2
+      },
+      {
+        "name": "DS_ENERGY_APIS",
+        "type": "datasource",
+        "query": "yesoreyeram-infinity-datasource",
+        "current": { "text": "Energy APIs", "value": "Energy APIs" },
+        "hide": 2
+      }
+    ]
+  },
+  "time": { "from": "now-24h", "to": "now" },
+  "title": "Energy Analytics & Cost",
+  "uid": "energy-analytics-cost"
+}

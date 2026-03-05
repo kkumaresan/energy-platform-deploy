@@ -26,7 +26,7 @@
       "targets": [
         {
           "refId": "A",
-          "query": "from(bucket: \"energy_data\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"machine_power\" and r._field == \"power_kw\")\n  |> aggregateWindow(every: v.windowPeriod, fn: sum, createEmpty: false)\n  |> yield(name: \"total\")"
+          "query": "from(bucket: \"energy_data\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"machine_power\" and r._field == \"power_kw\")\n  |> filter(fn: (r) => contains(value: r.machine_id, set: ${machine_id:json}))\n  |> aggregateWindow(every: v.windowPeriod, fn: sum, createEmpty: false)\n  |> yield(name: \"total\")"
         }
       ]
     },
@@ -50,7 +50,7 @@
       "targets": [
         {
           "refId": "A",
-          "query": "from(bucket: \"energy_data\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"machine_power\" and r._field == \"power_kw\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)"
+          "query": "from(bucket: \"energy_data\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"machine_power\" and r._field == \"power_kw\")\n  |> filter(fn: (r) => contains(value: r.machine_id, set: ${machine_id:json}))\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)"
         }
       ]
     },
@@ -74,7 +74,7 @@
       "targets": [
         {
           "refId": "A",
-          "query": "from(bucket: \"energy_data\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"machine_status\" and r._field == \"state\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)"
+          "query": "from(bucket: \"energy_data\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"machine_status\" and r._field == \"state\")\n  |> filter(fn: (r) => contains(value: r.machine_id, set: ${machine_id:json}))\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)"
         }
       ]
     },
@@ -105,7 +105,7 @@
       "targets": [
         {
           "refId": "A",
-          "query": "from(bucket: \"energy_data\")\n  |> range(start: -5m)\n  |> filter(fn: (r) => r._measurement == \"machine_power\" and r._field == \"power_kw\")\n  |> last()"
+          "query": "from(bucket: \"energy_data\")\n  |> range(start: -5m)\n  |> filter(fn: (r) => r._measurement == \"machine_power\" and r._field == \"power_kw\")\n  |> filter(fn: (r) => contains(value: r.machine_id, set: ${machine_id:json}))\n  |> last()"
         }
       ]
     },
@@ -136,7 +136,7 @@
       "targets": [
         {
           "refId": "A",
-          "query": "from(bucket: \"energy_data\")\n  |> range(start: -5m)\n  |> filter(fn: (r) => r._measurement == \"machine_power\" and r._field == \"temperature\")\n  |> last()"
+          "query": "from(bucket: \"energy_data\")\n  |> range(start: -5m)\n  |> filter(fn: (r) => r._measurement == \"machine_power\" and r._field == \"temperature\")\n  |> filter(fn: (r) => contains(value: r.machine_id, set: ${machine_id:json}))\n  |> last()"
         }
       ]
     },
@@ -156,7 +156,7 @@
       "targets": [
         {
           "refId": "A",
-          "query": "from(bucket: \"energy_data\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"machine_power\" and r._field == \"voltage\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)"
+          "query": "from(bucket: \"energy_data\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"machine_power\" and r._field == \"voltage\")\n  |> filter(fn: (r) => contains(value: r.machine_id, set: ${machine_id:json}))\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)"
         }
       ]
     },
@@ -185,7 +185,7 @@
       "targets": [
         {
           "refId": "A",
-          "query": "from(bucket: \"energy_data\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"machine_power\" and r._field == \"power_factor\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)"
+          "query": "from(bucket: \"energy_data\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"machine_power\" and r._field == \"power_factor\")\n  |> filter(fn: (r) => contains(value: r.machine_id, set: ${machine_id:json}))\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)"
         }
       ]
     },
@@ -205,7 +205,7 @@
       "targets": [
         {
           "refId": "A",
-          "query": "from(bucket: \"energy_data\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"machine_power\" and r._field == \"pressure\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)"
+          "query": "from(bucket: \"energy_data\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"machine_power\" and r._field == \"pressure\")\n  |> filter(fn: (r) => contains(value: r.machine_id, set: ${machine_id:json}))\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)"
         }
       ]
     },
@@ -231,7 +231,82 @@
       "targets": [
         {
           "refId": "A",
-          "query": "from(bucket: \"energy_data\")\n  |> range(start: -24h)\n  |> filter(fn: (r) => r._measurement == \"machine_power\" and r._field == \"power_kw\")\n  |> aggregateWindow(every: 1h, fn: mean, createEmpty: false)\n  |> map(fn: (r) => ({r with _value: r._value * 1.0}))\n  |> group(columns: [\"machine_id\"])\n  |> sum()"
+          "query": "from(bucket: \"energy_data\")\n  |> range(start: -24h)\n  |> filter(fn: (r) => r._measurement == \"machine_power\" and r._field == \"power_kw\")\n  |> filter(fn: (r) => contains(value: r.machine_id, set: ${machine_id:json}))\n  |> aggregateWindow(every: 1h, fn: mean, createEmpty: false)\n  |> map(fn: (r) => ({r with _value: r._value * 1.0}))\n  |> group(columns: [\"machine_id\"])\n  |> sum()"
+        }
+      ]
+    },
+    {
+      "title": "Current (A)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 50 },
+      "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "unit": "amp",
+          "custom": { "lineWidth": 1 }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "query": "from(bucket: \"energy_data\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"machine_power\" and r._field == \"current\")\n  |> filter(fn: (r) => contains(value: r.machine_id, set: ${machine_id:json}))\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)"
+        }
+      ]
+    },
+    {
+      "title": "Compressor Flow Rate (CFM)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 50 },
+      "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "unit": "none",
+          "displayName": "CFM",
+          "custom": { "lineWidth": 1 }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "query": "from(bucket: \"energy_data\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"machine_power\" and r._field == \"flow_rate\")\n  |> filter(fn: (r) => contains(value: r.machine_id, set: ${machine_id:json}))\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)"
+        }
+      ]
+    },
+    {
+      "title": "Idle Waste — Machines Idle but Consuming Power",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 24, "x": 0, "y": 58 },
+      "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 1 },
+              { "color": "red", "value": 3 }
+            ]
+          },
+          "unit": "none",
+          "displayName": "Idle Wasting Machines"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "background",
+        "graphMode": "none"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "query": "idle = from(bucket: \"energy_data\")\n  |> range(start: -5m)\n  |> filter(fn: (r) => r._measurement == \"machine_status\" and r._field == \"state\" and r._value == \"idle\")\n  |> filter(fn: (r) => contains(value: r.machine_id, set: ${machine_id:json}))\n  |> last()\n  |> keep(columns: [\"machine_id\", \"_value\"])\n  |> rename(columns: {_value: \"status\"})\n\npower = from(bucket: \"energy_data\")\n  |> range(start: -5m)\n  |> filter(fn: (r) => r._measurement == \"machine_power\" and r._field == \"power_kw\")\n  |> filter(fn: (r) => contains(value: r.machine_id, set: ${machine_id:json}))\n  |> last()\n  |> filter(fn: (r) => r._value > 0.5)\n  |> keep(columns: [\"machine_id\", \"_value\"])\n  |> rename(columns: {_value: \"power_kw\"})\n\njoin(tables: {i: idle, p: power}, on: [\"machine_id\"])\n  |> count(column: \"power_kw\")"
         }
       ]
     }
@@ -247,6 +322,34 @@
         "query": "influxdb",
         "current": { "text": "InfluxDB", "value": "InfluxDB" },
         "hide": 2
+      },
+      {
+        "name": "machine_id",
+        "type": "query",
+        "label": "Machine",
+        "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+        "query": "import \"influxdata/influxdb/schema\"\nschema.tagValues(bucket: \"energy_data\", tag: \"machine_id\")",
+        "refresh": 2,
+        "multi": true,
+        "includeAll": true,
+        "allValue": null,
+        "current": { "text": "All", "value": ["$__all"] },
+        "sort": 1,
+        "hide": 0
+      },
+      {
+        "name": "machine_type",
+        "type": "query",
+        "label": "Machine Type",
+        "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+        "query": "import \"influxdata/influxdb/schema\"\nschema.tagValues(bucket: \"energy_data\", tag: \"machine_type\")",
+        "refresh": 2,
+        "multi": true,
+        "includeAll": true,
+        "allValue": null,
+        "current": { "text": "All", "value": ["$__all"] },
+        "sort": 1,
+        "hide": 0
       }
     ]
   },

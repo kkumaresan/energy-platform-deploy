@@ -42,8 +42,18 @@ services:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: energy-admin
       GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/machine-energy.json
+      GF_PLUGINS_PREINSTALL: yesoreyeram-infinity-datasource
+      # Allow embedding Grafana panels in the custom frontend via iframe
+      GF_SECURITY_ALLOW_EMBEDDING: "true"
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_NAME: Main Org.
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
     depends_on:
       - influxdb
+      - analytics
+      - ml-service
+      - optimization
+      - alert-service
     restart: unless-stopped
 
   data-collector:
@@ -157,6 +167,8 @@ services:
     container_name: energy-api-gateway
     ports:
       - "8080:8080"
+    volumes:
+      - gateway-db:/app/data
     environment:
       API_PORT: "8080"
       INFLUXDB_URL: http://influxdb:8086
@@ -167,12 +179,30 @@ services:
       ML_SERVICE_URL: http://ml-service:8082
       OPTIMIZATION_SERVICE_URL: http://optimization:8083
       ALERT_SERVICE_URL: http://alert-service:8084
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-in-prod}
+      ADMIN_INITIAL_PASSWORD: ${ADMIN_INITIAL_PASSWORD:-admin-change-me}
+      DB_PATH: /app/data/platform.db
     depends_on:
       - influxdb
       - analytics
       - ml-service
       - optimization
       - alert-service
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ../energy-frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ""
+        VITE_GRAFANA_URL: http://localhost:3000
+        VITE_WS_URL: ws://localhost:8080
+    container_name: energy-frontend
+    ports:
+      - "3001:80"
+    depends_on:
+      - api-gateway
     restart: unless-stopped
 
 volumes:
@@ -182,3 +212,4 @@ volumes:
   influxdb-config:
   grafana-data:
   ml-model-artifacts:
+  gateway-db:

@@ -78,7 +78,16 @@ All 10 containers should show `running`:
 | Grafana   | http://localhost:3000     | admin    | energy-admin      |
 | InfluxDB  | http://localhost:8086     | admin    | energy-admin-2026 |
 
-The Grafana dashboard ("Machine Energy Overview") is auto-provisioned and should show live data within 10 seconds of startup.
+Three Grafana dashboards are auto-provisioned and should show live data within 10–30 seconds of startup:
+
+| Dashboard | Description |
+|-----------|-------------|
+| **Factory Energy Monitor** | Live machine power, status, temperature, voltage, power factor, current, flow rate; filter by machine_id/type |
+| **Energy Analytics & Cost** | 24h cost totals, load factor, peak demand, daily energy trends, shift comparison, idle machines (via Analytics API) |
+| **Alerts & ML Insights** | Alert status, active alerts, alert trend, efficiency scores, anomaly overlay, optimization recommendations (via Infinity plugin) |
+
+### Infinity Plugin
+The Grafana Infinity datasource plugin (`yesoreyeram-infinity-datasource`) is automatically installed on first startup via `GF_PLUGINS_PREINSTALL`. It enables the **Energy Analytics & Cost** and **Alerts & ML Insights** dashboards to query the microservice REST APIs directly.
 
 ## 5. Test the APIs
 
@@ -152,6 +161,11 @@ curl "http://localhost:8080/api/v1/alerts/history?limit=20"
 curl http://localhost:8080/api/v1/alerts/rules
 ```
 
+### Alerts — summary by severity
+```bash
+curl http://localhost:8080/api/v1/alerts/summary
+```
+
 ## 6. Common Commands
 
 ```bash
@@ -175,7 +189,26 @@ docker compose down -v
 docker compose down -v && docker compose up -d --build
 ```
 
-## 7. Troubleshooting
+## 7. InfluxDB Write-Back Measurements
+
+The ML and Alert services write derived data back to InfluxDB for historical trending in Grafana:
+
+| Measurement | Written by | Tags | Fields |
+|-------------|------------|------|--------|
+| `alert_events` | alert-service (every alert trigger/resolve) | `rule_name`, `machine_id`, `severity` | `value`, `threshold`, `event_type` (`triggered`/`resolved`) |
+| `anomaly_scores` | ml-service (on each `/ml/anomalies` call) | `machine_id` | `anomaly_score`, `is_anomaly`, `power_kw` |
+| `efficiency_scores` | ml-service (on each `/ml/efficiency` call) | `machine_id`, `machine_type` | `score`, `utilization`, `idle_ratio`, `power_factor_score`, `temperature_score` |
+
+To seed efficiency and anomaly data for the trend panels, call:
+```bash
+curl -X POST http://localhost:8080/api/v1/ml/train
+curl http://localhost:8080/api/v1/ml/efficiency
+curl "http://localhost:8080/api/v1/ml/anomalies/CNC_01?range=-1h"
+```
+
+Alert events are written automatically by the alert watcher every 30 seconds.
+
+## 8. Troubleshooting
 
 ### Services keep restarting
 Check logs for the failing service:

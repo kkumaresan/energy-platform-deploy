@@ -1,0 +1,472 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "title": "Row 1: Alert Status",
+      "type": "row",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "collapsed": false
+    },
+    {
+      "title": "Critical Alerts",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 1 },
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "${DS_ENERGY_APIS}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "fixedColor": "red", "mode": "fixed" },
+          "unit": "none",
+          "displayName": "Critical"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "url": "http://alert-service:8084/alerts/summary",
+          "url_options": { "method": "GET" },
+          "root_selector": "$.by_severity.critical",
+          "columns": []
+        }
+      ]
+    },
+    {
+      "title": "Warning Alerts",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 1 },
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "${DS_ENERGY_APIS}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "fixedColor": "orange", "mode": "fixed" },
+          "unit": "none",
+          "displayName": "Warning"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "url": "http://alert-service:8084/alerts/summary",
+          "url_options": { "method": "GET" },
+          "root_selector": "$.by_severity.warning",
+          "columns": []
+        }
+      ]
+    },
+    {
+      "title": "Info Alerts",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 1 },
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "${DS_ENERGY_APIS}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "fixedColor": "blue", "mode": "fixed" },
+          "unit": "none",
+          "displayName": "Info"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "url": "http://alert-service:8084/alerts/summary",
+          "url_options": { "method": "GET" },
+          "root_selector": "$.by_severity.info",
+          "columns": []
+        }
+      ]
+    },
+    {
+      "title": "Total Active Alerts",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 1 },
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "${DS_ENERGY_APIS}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 1 },
+              { "color": "red", "value": 5 }
+            ]
+          },
+          "unit": "none",
+          "displayName": "Total Active"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "url": "http://alert-service:8084/alerts/summary",
+          "url_options": { "method": "GET" },
+          "root_selector": "$.total_active",
+          "columns": []
+        }
+      ]
+    },
+    {
+      "title": "Row 2: Active Alerts",
+      "type": "row",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+      "collapsed": false
+    },
+    {
+      "title": "Active Alerts",
+      "type": "table",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 6 },
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "${DS_ENERGY_APIS}" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "thresholds" } },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "severity" },
+            "properties": [
+              {
+                "id": "custom.displayMode",
+                "value": "color-background"
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  { "type": "value", "options": { "critical": { "color": "red", "text": "Critical" } } },
+                  { "type": "value", "options": { "warning": { "color": "orange", "text": "Warning" } } },
+                  { "type": "value", "options": { "info": { "color": "blue", "text": "Info" } } }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": { "sortBy": [{ "displayName": "severity", "desc": false }] },
+      "targets": [
+        {
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "url": "http://alert-service:8084/alerts/active",
+          "url_options": { "method": "GET" },
+          "root_selector": "$.alerts[*]",
+          "columns": [
+            { "selector": "severity", "text": "severity", "type": "string" },
+            { "selector": "machine_id", "text": "Machine", "type": "string" },
+            { "selector": "title", "text": "Title", "type": "string" },
+            { "selector": "value", "text": "Value", "type": "number" },
+            { "selector": "threshold", "text": "Threshold", "type": "number" },
+            { "selector": "triggered_at", "text": "Triggered At", "type": "string" }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Row 3: Alert Trend (InfluxDB write-back)",
+      "type": "row",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 14 },
+      "collapsed": false
+    },
+    {
+      "title": "Alert Events Over Time",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 15 },
+      "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "unit": "none",
+          "custom": { "lineWidth": 2, "fillOpacity": 20 }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "query": "from(bucket: \"energy_data\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"alert_events\" and r._field == \"value\")\n  |> aggregateWindow(every: 15m, fn: count, createEmpty: true)\n  |> group(columns: [\"severity\"])"
+        }
+      ]
+    },
+    {
+      "title": "Row 4: Efficiency Scores (Infinity → ML API)",
+      "type": "row",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 23 },
+      "collapsed": false
+    },
+    {
+      "title": "Machine Efficiency Scores",
+      "type": "bargauge",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 24 },
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "${DS_ENERGY_APIS}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 60 },
+              { "color": "green", "value": 80 }
+            ]
+          },
+          "unit": "none",
+          "min": 0,
+          "max": 100
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "reduceOptions": { "calcs": ["lastNotNull"] }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "url": "http://ml-service:8082/ml/efficiency",
+          "url_options": { "method": "GET" },
+          "root_selector": "$[*]",
+          "columns": [
+            { "selector": "machine_id", "text": "Machine", "type": "string" },
+            { "selector": "score", "text": "score", "type": "number" }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Row 5: Efficiency Trend (InfluxDB write-back)",
+      "type": "row",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 32 },
+      "collapsed": false
+    },
+    {
+      "title": "Efficiency Score Trend",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 33 },
+      "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "unit": "none",
+          "min": 0,
+          "max": 100,
+          "custom": { "lineWidth": 2 },
+          "thresholds": {
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 60 },
+              { "color": "green", "value": 80 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "query": "from(bucket: \"energy_data\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"efficiency_scores\" and r._field == \"score\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> group(columns: [\"machine_id\"])"
+        }
+      ]
+    },
+    {
+      "title": "Row 6: Anomaly Overlay (InfluxDB write-back)",
+      "type": "row",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 41 },
+      "collapsed": false
+    },
+    {
+      "title": "Anomaly Scores",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 42 },
+      "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "unit": "none",
+          "min": 0,
+          "max": 1,
+          "custom": { "lineWidth": 1 },
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 0.5 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": { "mode": "multi" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "query": "from(bucket: \"energy_data\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"anomaly_scores\" and r._field == \"anomaly_score\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> group(columns: [\"machine_id\"])"
+        },
+        {
+          "refId": "B",
+          "query": "from(bucket: \"energy_data\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"anomaly_scores\" and r._field == \"anomaly_score\")\n  |> map(fn: (r) => ({r with _value: 0.5}))\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> set(key: \"_field\", value: \"detection_threshold\")"
+        }
+      ]
+    },
+    {
+      "title": "Row 7: Optimization Recommendations",
+      "type": "row",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 50 },
+      "collapsed": false
+    },
+    {
+      "title": "Optimization Suggestions",
+      "type": "table",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 51 },
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "${DS_ENERGY_APIS}" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "thresholds" } },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "severity" },
+            "properties": [
+              { "id": "custom.displayMode", "value": "color-background" },
+              {
+                "id": "mappings",
+                "value": [
+                  { "type": "value", "options": { "high": { "color": "red", "text": "High" } } },
+                  { "type": "value", "options": { "medium": { "color": "orange", "text": "Medium" } } },
+                  { "type": "value", "options": { "low": { "color": "green", "text": "Low" } } }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": { "sortBy": [{ "displayName": "Savings (kWh/day)", "desc": true }] },
+      "targets": [
+        {
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "url": "http://optimization:8083/optimization/suggestions?range=-24h",
+          "url_options": { "method": "GET" },
+          "root_selector": "$.recommendations[*]",
+          "columns": [
+            { "selector": "severity", "text": "severity", "type": "string" },
+            { "selector": "machine_id", "text": "Machine", "type": "string" },
+            { "selector": "type", "text": "Type", "type": "string" },
+            { "selector": "title", "text": "Recommendation", "type": "string" },
+            { "selector": "estimated_savings_kwh_per_day", "text": "Savings (kWh/day)", "type": "number" }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Row 8: Alert History",
+      "type": "row",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 59 },
+      "collapsed": false
+    },
+    {
+      "title": "Recent Alert History",
+      "type": "table",
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 60 },
+      "datasource": { "type": "yesoreyeram-infinity-datasource", "uid": "${DS_ENERGY_APIS}" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "thresholds" } },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "severity" },
+            "properties": [
+              { "id": "custom.displayMode", "value": "color-background" },
+              {
+                "id": "mappings",
+                "value": [
+                  { "type": "value", "options": { "critical": { "color": "red", "text": "Critical" } } },
+                  { "type": "value", "options": { "warning": { "color": "orange", "text": "Warning" } } },
+                  { "type": "value", "options": { "info": { "color": "blue", "text": "Info" } } }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": { "sortBy": [{ "displayName": "triggered_at", "desc": true }] },
+      "targets": [
+        {
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "url": "http://alert-service:8084/alerts/history?limit=100",
+          "url_options": { "method": "GET" },
+          "root_selector": "$.alerts[*]",
+          "columns": [
+            { "selector": "severity", "text": "severity", "type": "string" },
+            { "selector": "machine_id", "text": "Machine", "type": "string" },
+            { "selector": "rule_name", "text": "Rule", "type": "string" },
+            { "selector": "title", "text": "Title", "type": "string" },
+            { "selector": "triggered_at", "text": "triggered_at", "type": "string" },
+            { "selector": "resolved_at", "text": "Resolved At", "type": "string" }
+          ]
+        }
+      ]
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 39,
+  "tags": ["energy", "alerts", "ml"],
+  "templating": {
+    "list": [
+      {
+        "name": "DS_INFLUXDB",
+        "type": "datasource",
+        "query": "influxdb",
+        "current": { "text": "InfluxDB", "value": "InfluxDB" },
+        "hide": 2
+      },
+      {
+        "name": "DS_ENERGY_APIS",
+        "type": "datasource",
+        "query": "yesoreyeram-infinity-datasource",
+        "current": { "text": "Energy APIs", "value": "Energy APIs" },
+        "hide": 2
+      }
+    ]
+  },
+  "time": { "from": "now-6h", "to": "now" },
+  "title": "Alerts & ML Insights",
+  "uid": "alerts-ml-insights"
+}
